@@ -25,13 +25,13 @@ import polars as pl
 
 from settings import config
 
-DATA_DIR = Path(config("DATA_DIR"))
-HF_TOKEN = config("HF_TOKEN", default=None)
+DATA_DIR = config("DATA_DIR")
+HF_TOKEN = config("HF_TOKEN")
 
 GEMMA_MODEL_NAME = "google/embeddinggemma-300m"
 EMBED_DIM = 768
 MAX_LENGTH = 64
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 PROMPT_NAME = "Classification"
 
 
@@ -90,7 +90,7 @@ def _load_chunk_ids(chunk_dir):
 
 def embed_headlines_gemma(
     headlines, story_ids, batch_size=BATCH_SIZE, max_length=MAX_LENGTH,
-    model_name=GEMMA_MODEL_NAME, device=None, checkpoint_every=100, chunk_dir=None,
+    model_name=GEMMA_MODEL_NAME, device=None, checkpoint_every=500, chunk_dir=None,
     prompt_name=PROMPT_NAME,
 ):
     """Embed a list of headlines using EmbeddingGemma."""
