@@ -1,34 +1,83 @@
+
+##########################
+# Project Input and Output
+##########################
+
+# Exclude _data folder, since it should all be pulled automatically (unless in the manual folder)
+/_data/*
+
+# Exclude _output directory since it's should generated automatically
+/_output/*
+
+# Exclude PDFs generated from source LaTeX files, which are kept in the reports directory
+/reports/*.pdf
+
+# Secrets saved in environment files
+.env*
+# Allow example environment file
+!.env.example*
+
+# Other
+temp*.csv
+*/_build/
+drafts/draft_bp.pdf
+
+# venv virtual environment folder
+/venv/*
+/.venv/*
+/.venv/*
+
+# Sphinx build files
+_docs/
+
+
+##############
+#Excluded PDFs
+##############
+# I've decided to exclude all PDFs unless they're in the literature or papers directory.
+# http://stackoverflow.com/questions/1248570/git-ignore-everything-except-subdirectory
+
+# !/related_literature/*
+# !/related_literature/
+# !/related_literature/*/*
+# !/Papers/*
+# !/papers/*
+# !/literature/*
+
+#########################
+# Exclude Compiled Files
+#########################
+bin/
+*.pyc
+*.exe
+SourceCode/build/
+bin/
+a.out
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[codz]
-*$py.class
-
-# C extensions
-*.so
+*.py[cod]
 
 # Distribution / packaging
 .Python
+env/
 build/
 develop-eggs/
 dist/
 downloads/
 eggs/
-.eggs/
 lib/
 lib64/
 parts/
 sdist/
 var/
-wheels/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
 # PyInstaller
-#   Usually these files are written by a python script from a template
-#   before PyInstaller builds the exe, so as to inject date/other infos into it.
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 
@@ -39,17 +88,10 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 htmlcov/
 .tox/
-.nox/
 .coverage
-.coverage.*
 .cache
 nosetests.xml
 coverage.xml
-*.cover
-*.py.cover
-.hypothesis/
-.pytest_cache/
-cover/
 
 # Translations
 *.mo
@@ -57,162 +99,158 @@ cover/
 
 # Django stuff:
 *.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
 
 # Sphinx documentation
-docs/_build/
+docs/
+/docs_src/apidocs
+
 
 # PyBuilder
-.pybuilder/
 target/
 
-# Jupyter Notebook
+# emacs
+*~
+# C extensions
+*.so
+
+##############
+# LaTex Files
+##############
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.nav
+*.pdfsync
+*.synctex.gz
+*.bak
+*.snm
+*.toc
+*.tdo
+*.run.xml
+*.loe
+
+
+##########
+# R Files
+##########
+.Rproj.user
+.Rhistory
+.RData
+.Rapp.history
+
+################
+# Database Files
+################
+*.hdf5
+*.npz
+
+###################################
+# Exclude Output From Scripted Jobs
+###################################
+*.o*
+
+####################################
+# Exclude Sublime Text project files
+####################################
+*.sublime*
+
+####################################
+# Exclude Mac OSX system files
+####################################
+.DS_Store
+
+####################################
+# IPython/Jupyter Checkpoints
+####################################
 .ipynb_checkpoints
+.ipynb_checkpoints/
 
-# IPython
-profile_default/
-ipython_config.py
+####################################
+# Vagrant
+####################################
+.vagrant/
 
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
+######################################
+## R files ##
+######################################
+# History files
+.Rhistory
+.Rapp.history
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-# Pipfile.lock
+# Session Data files
+.RData
 
-# UV
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-# uv.lock
+# User-specific files
+.Ruserdata
 
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-# poetry.lock
-# poetry.toml
+# Example code in package build process
+*-Ex.R
 
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#   pdm recommends including project-wide configuration in pdm.toml, but excluding .pdm-python.
-#   https://pdm-project.org/en/latest/usage/project/#working-with-version-control
-# pdm.lock
-# pdm.toml
-.pdm-python
-.pdm-build/
+# Output files from R CMD build
+/*.tar.gz
 
-# pixi
-#   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
-# pixi.lock
-#   Pixi creates a virtual environment in the .pixi directory, just like venv module creates one
-#   in the .venv directory. It is recommended not to include this directory in version control.
-.pixi
+# Output files from R CMD check
+/*.Rcheck/
 
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
+# RStudio files
+.Rproj.user/
 
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
+# produced vignettes
+vignettes/*.html
+vignettes/*.pdf
 
-# Redis
-*.rdb
-*.aof
-*.pid
+# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+.httr-oauth
 
-# RabbitMQ
-mnesia/
-rabbitmq/
-rabbitmq-data/
+# knitr and R markdown default cache directories
+*_cache/
+/cache/
 
-# ActiveMQ
-activemq-data/
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
 
-# SageMath parsed files
-*.sage.py
+# R Environment Variables
+.Renviron
 
-# Environments
-.env
-.envrc
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+########
+# MISC.
+########
+# *.zip
+# *.tar.gz
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.dat
+*.dir
+*.fdb_latexmk
+*.fls
+*.graphml
+*.gz
+*.ini
+!pytest.ini
+*.log
+*.out
+*.vrb
+*.xdv
+*.xdv
+\.pytest_cache/
+~$*
 
-# Spyder project settings
-.spyderproject
-.spyproject
+.doit.db
+.doit.db.db
+.doit-db.sqlite
 
-# Rope project settings
-.ropeproject
+src/z_scratch_project_template.ipynb
 
-# mkdocs documentation
-/site
+*Thumbs.db
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+src/z_scratch_pipeline_template.ipynb
 
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#   JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#   be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#   and can be added to the global gitignore or merged into this file.  For a more nuclear
-#   option (not recommended) you can uncomment the following to ignore the entire idea folder.
-# .idea/
-
-# Abstra
-#   Abstra is an AI-powered process automation framework.
-#   Ignore directories containing user credentials, local state, and settings.
-#   Learn more at https://abstra.io/docs
-.abstra/
-
-# Visual Studio Code
-#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
-#   that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#   and can be added to the global gitignore or merged into this file. However, if you prefer, 
-#   you could uncomment the following to ignore the entire vscode folder
-# .vscode/
-# Temporary file for partial code execution
-tempCodeRunnerFile.py
-
-# Ruff stuff:
-.ruff_cache/
-
-# PyPI configuration file
-.pypirc
-
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
-
-# Streamlit
-.streamlit/secrets.toml
+.vscode/
+.claude/
