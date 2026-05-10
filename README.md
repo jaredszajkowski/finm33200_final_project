@@ -108,11 +108,8 @@ Alternatively, simple formatting with [Black](https://black.readthedocs.io/en/st
 black path/to/file_or_directory.py
 ```
 
-# Need to review everything below here
-
 ## Directory Structure
 
-- `assets/` — Hand-drawn figures and other non-generated images.
 - `_output/` — Generated output (dataframes, charts, rendered notebooks). Safe to delete and regenerate with `doit`.
 - `_data/` — Cached data pulled by scripts. Safe to delete and regenerate. Not tracked in Git.
 - `data_manual/` — Manually-created data that cannot be regenerated. Tracked in Git.
@@ -126,8 +123,4 @@ black path/to/file_or_directory.py
 
 ## Acknowledgments
 
-This case study is based on a class project originally developed by
-**Andrew Moukabary** and **Reece VanDeWeghe** for FINM 32900.
-The current version has been adapted for use as a teaching case study.
-Credit for the original pipeline design, data cleaning logic, and
-analytical framework belongs to the original authors.
+This case study is based on a class project originally developed by **Andrew Moukabary** and **Reece VanDeWeghe** for FINM 32900. The current version has been adapted for use as a teaching case study. Credit for the original pipeline design, data cleaning logic, and analytical framework belongs to the original authors.
