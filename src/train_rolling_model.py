@@ -41,8 +41,6 @@ DATA_DIR = Path(config("DATA_DIR"))
 
 # Registry of embedding models: name -> chunk directory
 EMBEDDING_REGISTRY = {
-    # "tfidf": "embeddings_tfidf_chunks",
-    # "openai_small": "embeddings_openai_small_chunks",
     "bert": "embeddings_bert_chunks",
     "gemma": "embeddings_gemma_chunks",
 }
@@ -194,6 +192,8 @@ def run_rolling_sentiment_analysis(
     else:
         results = {}
 
+    predictions = []
+
     for w in windows:
         oos_year = w["oos_year"]
 
@@ -243,11 +243,12 @@ def run_rolling_sentiment_analysis(
             merged = df_labels.join(df_emb, on="rp_story_id", how="inner")
             X = merged.select(embed_cols).to_numpy().astype(np.float32)
             y = merged["label"].to_numpy()
-            return X, y
+            ids = merged["rp_story_id"].to_list()
+            return X, y, ids
 
-        X_train, y_train = _build_Xy(df_train_labels)
-        X_val, y_val = _build_Xy(df_val_labels)
-        X_test, y_test = _build_Xy(df_test_labels)
+        X_train, y_train, _ = _build_Xy(df_train_labels)
+        X_val, y_val, _ = _build_Xy(df_val_labels)
+        X_test, y_test, test_ids = _build_Xy(df_test_labels)
 
         model, best_C, val_acc = train_logistic_sentiment(X_train, y_train, X_val, y_val)
 
@@ -269,13 +270,16 @@ def run_rolling_sentiment_analysis(
             "n_test": len(X_test),
         }
 
+        for sid, p in zip(test_ids, y_proba.tolist()):
+            predictions.append({"rp_story_id": sid, "oos_year": oos_year, "p_up": p})
+
         with open(checkpoint_path, "w") as f:
             json.dump({str(k): v for k, v in results.items()}, f, indent=2)
 
         del df_emb, X_train, X_val, X_test
         gc.collect()
 
-    return results
+    return results, predictions
 
 
 def save_results(results, model_name, data_dir=DATA_DIR):
@@ -338,11 +342,16 @@ if __name__ == "__main__":
             continue
 
         checkpoint = DATA_DIR / f"rolling_results_{model_name}_checkpoint.json"
-        results = run_rolling_sentiment_analysis(
+        results, predictions = run_rolling_sentiment_analysis(
             chunk_dir, df_labeled, windows,
             model_name=model_name, checkpoint_path=checkpoint,
         )
         save_results(results, model_name)
+
+        pred_path = DATA_DIR / f"rolling_predictions_{model_name}.parquet"
+        pl.DataFrame(predictions).write_parquet(pred_path)
+        print(f"Saved {len(predictions):,} per-headline predictions: {pred_path}")
+
         if checkpoint.exists():
             checkpoint.unlink()
             print(f"{model_name} checkpoint cleaned up.")
