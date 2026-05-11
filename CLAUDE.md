@@ -97,6 +97,9 @@ Three scripts avoid materializing the full dataset in RAM:
 
 When editing these scripts, preserve the lazy/streaming pattern; do not introduce eager `pl.read_parquet` on the large RavenPack file.
 
+### HW2 leftovers
+`src/merge_scraped_headlines.py` and `src/test_homework.py` are holdovers from the HW2 replication pipeline (see `README_HW2.md`) and are not part of the sector-sentiment final-project flow. Do not wire them into new tasks.
+
 ### Notebooks
 `src/0[1-5]_*_ipynb.py` are jupytext percent-format Python files (`# %%` cells). Edit the `.py` files, not the `.ipynb` files. `05_sector_analysis_ipynb.py` is the sector-sentiment analysis specific to this final project.
 
