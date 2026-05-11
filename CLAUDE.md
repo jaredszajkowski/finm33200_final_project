@@ -14,8 +14,6 @@ See `README.md` for the full thesis and methodology comparison; `README_HW2.md` 
 
 ### Setup
 ```bash
-python -m venv .venv
-source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env  # then fill in WRDS_USERNAME, HF_TOKEN, etc.
 ```

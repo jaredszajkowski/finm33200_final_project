@@ -280,10 +280,8 @@ def task_text_stats():
 def _check_embed_chunks_exist(model_name):
     """Return a doit uptodate callable that checks if embedding chunks exist."""
     chunk_dir_map = {
-        # "tfidf": "embeddings_tfidf_chunks",
         "bert": "embeddings_bert_chunks",
         "gemma": "embeddings_gemma_chunks",
-        # "openai_small": "embeddings_openai_small_chunks",
     }
 
     def _check():
@@ -296,10 +294,8 @@ def _check_embed_chunks_exist(model_name):
 def task_embed():
     """Generate text embeddings for headlines"""
     models = {
-        # "tfidf": "embed_tfidf",
         "bert": "embed_bert",
         "gemma": "embed_gemma",
-        # "openai_small": "embed_openai_small",
     }
     for model_name, script_name in models.items():
         yield {

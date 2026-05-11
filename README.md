@@ -4,7 +4,7 @@
 
 In HW2, we produced a modified replication of the Chen, Kelly, and Xiu (2022) paper entitled "Expected Returns and Large Language Models" using independently scraped news headlines instead of Thomson Reuters full articles. The [README for HW2](README_HW2.md) provides detailed context on the original paper's methodology and our replication approach.
 
-In this final project (referred to as sector sentiment, going forward), we build on that foundation with completion of a similar set of headline embedding tasks, but with a focus on deriving *sector-level* sentiment signals rather than individual stock-level return predictions. This involves aggregating headline embeddings at the sector level and evaluating their predictive power for sector returns.
+In this final project (referred to as sector sentiment, going forward), we build on that foundation with completion of a similar set of headline embedding tasks, but with a focus on deriving *sector-level* sentiment signals rather than individual stock-level return predictions. This involves aggregating the predicted returns from headline embeddings at the sector level and evaluating their predictive power for sector returns.
 
 Our thesis is based on the following ideas:
 
@@ -12,6 +12,7 @@ Our thesis is based on the following ideas:
 2. News headlines are a rich source of information about market sentiment and can be effectively embedded using LLMs
 3. Aggregating headline embeddings at the sector level can capture broader sentiment trends that may not be visible at the individual stock level, and these sector-level sentiment signals can have predictive power for future sector returns
 4. Implementing a trading/investing strategy based on daily stock-level sentiment signals is impractical due to the magnitude of trades required to capture the signal, but sector-level signals can be actionable for medium-term to long-term portfolio allocation decisions
+5. Given the results from Chen et al. showing that smaller LLMs can perform nearly as well as larger ones for embedding tasks, we can process data locally and avoid the need to send headline text to external APIs
 
 ## Replication/Adaptation Plan
 
@@ -83,8 +84,6 @@ Our sector sentiment pipeline is as follows:
 Create and activate a virtual environment, then install dependencies:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt # or uv pip install -r requirements.txt
 ```
 
