@@ -325,54 +325,54 @@ def task_pull_sector_etfs():
     }
 
 
-def task_build_sector_panel():
-    """Build per-(sector, day) sentiment + return panel for each model."""
-    models = ["bert", "gemma"]
-    for model_name in models:
-        yield {
-            "name": model_name,
-            "doc": f"Build sector sentiment panel from {model_name} predictions",
-            "actions": [f"ipython ./src/build_sector_panel.py --model {model_name}"],
-            "targets": [DATA_DIR / f"sector_sentiment_panel_{model_name}.parquet"],
-            "file_dep": [
-                "./src/settings.py",
-                "./src/build_sector_panel.py",
-                "./src/merge_sector.py",
-                DATA_DIR / "labeled_dataset_with_sector.parquet",
-                DATA_DIR / f"rolling_predictions_{model_name}.parquet",
-                DATA_DIR / "CRSP_daily_stock.parquet",
-                DATA_DIR / "sp500_constituents.parquet",
-                DATA_DIR / "sector_etfs.parquet",
-            ],
-            "clean": True,
-        }
+# def task_build_sector_panel():
+#     """Build per-(sector, day) sentiment + return panel for each model."""
+#     models = ["bert", "gemma"]
+#     for model_name in models:
+#         yield {
+#             "name": model_name,
+#             "doc": f"Build sector sentiment panel from {model_name} predictions",
+#             "actions": [f"ipython ./src/build_sector_panel.py --model {model_name}"],
+#             "targets": [DATA_DIR / f"sector_sentiment_panel_{model_name}.parquet"],
+#             "file_dep": [
+#                 "./src/settings.py",
+#                 "./src/build_sector_panel.py",
+#                 "./src/merge_sector.py",
+#                 DATA_DIR / "labeled_dataset_with_sector.parquet",
+#                 DATA_DIR / f"rolling_predictions_{model_name}.parquet",
+#                 DATA_DIR / "CRSP_daily_stock.parquet",
+#                 DATA_DIR / "sp500_constituents.parquet",
+#                 DATA_DIR / "sector_etfs.parquet",
+#             ],
+#             "clean": True,
+#         }
 
 
-def task_train():
-    """Train rolling sentiment models"""
-    models = [
-        # "tfidf",
-        "bert",
-        "gemma",
-        # "openai_small",
-    ]
-    for model_name in models:
-        yield {
-            "name": model_name,
-            "doc": f"Train rolling model on {model_name} embeddings",
-            "actions": [f"ipython ./src/train_rolling_model.py {model_name}"],
-            "targets": [
-                DATA_DIR / f"rolling_results_{model_name}.json",
-                DATA_DIR / f"rolling_predictions_{model_name}.parquet",
-            ],
-            "file_dep": [
-                "./src/settings.py",
-                "./src/train_rolling_model.py",
-                DATA_DIR / "labeled_dataset_with_sector.parquet",
-            ],
-            "task_dep": [f"embed:{model_name}"],
-            "clean": True,
-        }
+# def task_train():
+#     """Train rolling sentiment models"""
+#     models = [
+#         # "tfidf",
+#         "bert",
+#         "gemma",
+#         # "openai_small",
+#     ]
+#     for model_name in models:
+#         yield {
+#             "name": model_name,
+#             "doc": f"Train rolling model on {model_name} embeddings",
+#             "actions": [f"ipython ./src/train_rolling_model.py {model_name}"],
+#             "targets": [
+#                 DATA_DIR / f"rolling_results_{model_name}.json",
+#                 DATA_DIR / f"rolling_predictions_{model_name}.parquet",
+#             ],
+#             "file_dep": [
+#                 "./src/settings.py",
+#                 "./src/train_rolling_model.py",
+#                 DATA_DIR / "labeled_dataset_with_sector.parquet",
+#             ],
+#             "task_dep": [f"embed:{model_name}"],
+#             "clean": True,
+#         }
 
 
 # notebook_tasks = {
