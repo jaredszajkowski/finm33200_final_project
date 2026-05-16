@@ -4,15 +4,15 @@
 
 In HW2, we produced a modified replication of the Chen, Kelly, and Xiu (2022) paper entitled "Expected Returns and Large Language Models" using independently scraped news headlines instead of Thomson Reuters full articles. The [README for HW2](README_HW2.md) provides detailed context on the original paper's methodology and our replication approach.
 
-In this final project (referred to as sector sentiment, going forward), we build on that foundation with completion of a similar set of headline embedding tasks, but with a focus on deriving *sector-level* sentiment signals rather than individual stock-level return predictions. This involves aggregating the predicted returns from headline embeddings at the sector level and evaluating their predictive power for sector returns.
+In this final project (referred to as "Sector Sentiment", going forward), we build on that foundation with completion of a similar set of data cleaning, headline embedding, and training tasks, but with a focus on deriving *sector-level* sentiment signals. This involves aggregating the predicted returns from headline embeddings at the daily level and evaluating their predictive power for sector returns.
 
 Our thesis is based on the following ideas:
 
-1. Market sector sentiment shifts on a weeks-to-months timescale
-2. News headlines are a rich source of information about market sentiment and can be effectively embedded using LLMs
-3. Aggregating headline embeddings at the sector level can capture broader sentiment trends that may not be visible at the individual stock level, and these sector-level sentiment signals can have predictive power for future sector returns
-4. Implementing a trading/investing strategy based on daily stock-level sentiment signals is impractical due to the magnitude of trades required to capture the signal, but sector-level signals can be actionable for medium-term to long-term portfolio allocation decisions
-5. Given the results from Chen et al. showing that smaller LLMs can perform nearly as well as larger ones for embedding tasks, we can process data locally and avoid the need to send headline text to external APIs
+1. Market sector sentiment shifts on a weeks-to-months timescale.
+2. News headlines are a rich source of information about market sentiment and can be effectively embedded using LLMs.
+3. Aggregating daily headline embeddings up to the sector level can capture broader sentiment trends that may not be visible at the individual stock level, and these sector-level sentiment signals can have predictive power for future sector returns.
+4. Implementing a trading/investing strategy based on daily stock-level sentiment signals is impractical due to the magnitude of trades required to capture the signal, but sector-level signals can be actionable due to the instruments available (e.g., sector ETFs).
+5. Given the results from Chen et al. showing that smaller LLMs can perform nearly as well as larger ones for embedding tasks, we can process data locally and avoid the need to send headline text to external APIs, resulting in a much larger sample size of headlines.
 
 ## Replication/Adaptation Plan
 
@@ -61,9 +61,9 @@ Our sector sentiment pipeline is as follows:
 3. **Merge Data:** Return over 3-day window, labels, date, market cap, sector, permno.
 4. **Compute headline embeddings:** Pass each headline through BERT and Gemma embedding models to obtain a single vector per headline.
 5. **Train sentiment and return-prediction models.** Follow the same rolling-window supervised learning framework as Chen et al., using headline embeddings as features.
-6. **Evaluate out-of-sample.** Assess prediction accuracy and portfolio performance (long--short quintile spreads, Sharpe ratios).
+6. **Evaluate out-of-sample.** Assess prediction accuracy for the various models used to create embeddings.
 7. **Aggregate Returns:** Compute daily synthetic sector-level returns by aggregating stock-level returns using market-cap weights.
-8. **Compare Returns:** Assess the relationship between daily synthetic sector-level returns and realized sector ETF returns, including correlation analysis and portfolio backtesting based on sector-level sentiment scores.
+8. **Compare Returns:** Analyze the relationship between daily synthetic sector-level returns and realized sector ETF returns.
 
 ### Similarities And Differences Between Chen, Kelly, and Xiu, HW2 Replication, and Sector Sentiment
 
