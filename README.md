@@ -56,7 +56,7 @@ For reference, recall the following summaries of the original paper's methodolog
 
 As with HW2, we do not have access to Thomson Reuters full-text articles. However, instead of using **independently scraped news headlines** mreged with **RavenPack** metadata (entity IDs, sentiment scores, relevance, timestamps, etc.), as was required in HW2 due to the RavenPack licensing, our approach with sector sentiment is to use the RavenPack data in its entirety. We run local models for the embedding, and are therefore not sending any of the headline text to OpenAI or any other external API.
 
-The initial data acquisition, linking, cleaning, and embedding is as follows:
+For sector sentiment, the process is as follows:
 
 1. **Pull Data:** FRED, CRSP (Daily Stock & Index), S&P 500 constituents, RavenPack headlines, and sector ETF data.
 2. **Link Data:** Map RavenPack company IDs to CRSP PERMNOs and merge with stock return data.
