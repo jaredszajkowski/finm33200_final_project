@@ -81,7 +81,6 @@ defaults = {
     "OS_TYPE": get_os(),
     "START_DATE": datetime.strptime("2000-01-01", "%Y-%m-%d"),
     "END_DATE": datetime.strptime("2025-12-31", "%Y-%m-%d"),
-    "OPENAI_API_KEY": None,
     "HF_TOKEN": None,
 }
 
