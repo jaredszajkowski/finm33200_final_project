@@ -2,7 +2,6 @@
 Pull RavenPack DJ Press Release headlines from WRDS.
 
 Tables are partitioned by year: ravenpack_dj.rpa_djpr_equities_YYYY.
-Date range covers 2000-01-01 to 2019-06-30 (RavenPack DJ availability window).
 
 Key filters (matching Chen, Kelly, and Xiu 2022):
 - entity_type = 'COMP' (companies only)
@@ -19,12 +18,14 @@ import wrds
 
 from settings import config
 
-DATA_DIR = Path(config("DATA_DIR"))
+DATA_DIR = config("DATA_DIR")
 WRDS_USERNAME = config("WRDS_USERNAME")
+START_DATE = config("START_DATE")
+END_DATE = config("END_DATE")
 
 # RavenPack DJ availability window
-RP_START_DATE = "2000-01-01"
-RP_END_DATE = "2019-06-30"
+RP_START_DATE = START_DATE
+RP_END_DATE = END_DATE
 
 
 def pull_ravenpack(
@@ -46,8 +47,8 @@ def pull_ravenpack(
     if output_path is None:
         output_path = Path(DATA_DIR) / "ravenpack_djpr.parquet"
 
-    start_year = int(start_date[:4])
-    end_year = int(end_date[:4])
+    start_year = int(start_date.year)
+    end_year = int(end_date.year)
 
     db = wrds.Connection(wrds_username=wrds_username)
     writer = None
