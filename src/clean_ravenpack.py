@@ -97,7 +97,11 @@ def apply_opening_window_exclusion(df: pl.DataFrame) -> pl.DataFrame:
     return df
 
 
-def build_filtering_funnel(df_headlines: pl.DataFrame, df_crsp_daily: pl.DataFrame, min_chars: int = 5):
+def build_filtering_funnel(
+    df_headlines: pl.DataFrame,
+    df_crsp_daily: pl.DataFrame,
+    min_chars: int = 5,
+):
     """Apply the full filtering pipeline and return clean data + stage counts."""
     stage_counts = {}
 
@@ -124,7 +128,9 @@ def build_filtering_funnel(df_headlines: pl.DataFrame, df_crsp_daily: pl.DataFra
         .group_by("rp_story_id")
         .agg(pl.col("permno").n_unique().alias("n_permnos"))
     )
-    single_entity_ids = permno_counts.filter(pl.col("n_permnos") == 1)["rp_story_id"].to_list()
+    single_entity_ids = permno_counts.filter(pl.col("n_permnos") == 1)[
+        "rp_story_id"
+    ].to_list()
     df = df.filter(
         pl.col("rp_story_id").is_in(single_entity_ids) & pl.col("permno").is_not_null()
     )
@@ -133,8 +139,7 @@ def build_filtering_funnel(df_headlines: pl.DataFrame, df_crsp_daily: pl.DataFra
 
     # Stage 2: Has CRSP return
     crsp_keys = (
-        df_crsp_daily
-        .filter(pl.col("ret").is_not_null())
+        df_crsp_daily.filter(pl.col("ret").is_not_null())
         .select(
             pl.col("permno").cast(pl.Float64),
             pl.col("date").cast(pl.Date).alias("article_date"),
@@ -152,11 +157,39 @@ def build_filtering_funnel(df_headlines: pl.DataFrame, df_crsp_daily: pl.DataFra
         & (pl.col("headline").str.strip_chars().str.len_chars() >= min_chars)
     )
     stage_counts["3_length_filter"] = len(df)
-    print(f"Stage 3 (len >= {min_chars} chars):        {stage_counts['3_length_filter']:>10,}")
+    print(
+        f"Stage 3 (len >= {min_chars} chars):        {stage_counts['3_length_filter']:>10,}"
+    )
 
     # Stage 4: Deduplication (exact headline per permno-date, keep earliest)
-    df = df.sort(["permno", "article_date", "timestamp_utc"])
-    df = df.unique(subset=["permno", "article_date", "headline"], keep="first")
+    # Safe to partition by year: dedup key includes article_date, so no duplicate
+    # can straddle two years. Process one year at a time to stay within RAM.
+    # df = df.sort(["permno", "article_date", "timestamp_utc"])
+    # df = df.unique(subset=["permno", "article_date", "headline"], keep="first")
+    # _keys = ["permno", "article_date", "headline"]
+    # _rest = [c for c in df.columns if c not in _keys]
+    # df = (
+    #     df.lazy()
+    #     .group_by(_keys)
+    #     .agg(pl.col(_rest).sort_by("timestamp_utc").first())
+    #     .collect(streaming=True)
+    # )
+    _keys = ["permno", "article_date", "headline"]
+    _rest = [c for c in df.columns if c not in _keys]
+    years = df["article_date"].dt.year().unique().sort().to_list()
+    chunks = []
+    for year in years:
+        chunk = df.filter(pl.col("article_date").dt.year() == year)
+        chunk = (
+            chunk.lazy()
+            .group_by(_keys)
+            .agg(pl.col(_rest).sort_by("timestamp_utc").first())
+            .collect()
+        )
+        chunks.append(chunk)
+        del chunk
+    df = pl.concat(chunks)
+    del chunks
     stage_counts["4_deduplicated"] = len(df)
     print(f"Stage 4 (deduplicated):           {stage_counts['4_deduplicated']:>10,}")
 
