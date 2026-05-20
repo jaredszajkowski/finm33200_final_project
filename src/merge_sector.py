@@ -38,13 +38,10 @@ GICS_SECTOR_NAMES = {
 }
 
 
-def merge_sector(
-    df_labeled: pl.DataFrame, df_sp500: pl.DataFrame
-) -> pl.DataFrame:
+def merge_sector(df_labeled: pl.DataFrame, df_sp500: pl.DataFrame) -> pl.DataFrame:
     """Attach GICS sector to each headline via a point-in-time range join."""
     df_sectors = (
-        df_sp500
-        .select(
+        df_sp500.select(
             pl.col("permno").cast(pl.Float64),
             pl.col("gsector").cast(pl.Utf8),
             pl.col("effstartdt").cast(pl.Date),

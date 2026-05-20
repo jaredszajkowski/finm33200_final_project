@@ -97,9 +97,7 @@ def compute_text_stats(data_dir=DATA_DIR):
     bert_counts = count_tokens(headlines, "bert-base-uncased")
 
     print("Counting Gemma tokens...")
-    gemma_counts = count_tokens(
-        headlines, "google/gemma-3-1b-it", token=HF_TOKEN
-    )
+    gemma_counts = count_tokens(headlines, "google/gemma-3-1b-it", token=HF_TOKEN)
 
     stats = {
         "sample_size": len(headlines),

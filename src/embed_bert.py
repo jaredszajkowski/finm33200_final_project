@@ -56,13 +56,13 @@ def mean_pool_embeddings(model_output, attention_mask):
     """Mean pool the last hidden state, excluding padding tokens."""
     # === HW STEP 3 START ===
     # raise NotImplementedError("TODO: implement mean_pool_embeddings")
-    
+
     token_embeddings = model_output.last_hidden_state  # (batch, seq_len, hidden_dim)
-    mask = attention_mask.unsqueeze(-1).float()        # (batch, seq_len, 1)
-    summed = (token_embeddings * mask).sum(dim=1)      # (batch, hidden_dim)
-    counts = mask.sum(dim=1).clamp(min=1e-9)           # (batch, 1)
-    return (summed / counts).cpu().float().numpy()     # (batch, hidden_dim)
-    
+    mask = attention_mask.unsqueeze(-1).float()  # (batch, seq_len, 1)
+    summed = (token_embeddings * mask).sum(dim=1)  # (batch, hidden_dim)
+    counts = mask.sum(dim=1).clamp(min=1e-9)  # (batch, 1)
+    return (summed / counts).cpu().float().numpy()  # (batch, hidden_dim)
+
     # === HW STEP 3 END ===
 
 
@@ -74,7 +74,10 @@ def _save_chunk(embeddings_list, story_ids, chunk_dir, chunk_num):
     embeddings = np.vstack(embeddings_list)
     cols = [f"dim_{i}" for i in range(embeddings.shape[1])]
     df = pl.DataFrame(
-        {"rp_story_id": story_ids, **{c: embeddings[:, i].tolist() for i, c in enumerate(cols)}}
+        {
+            "rp_story_id": story_ids,
+            **{c: embeddings[:, i].tolist() for i, c in enumerate(cols)},
+        }
     )
     path = chunk_dir / f"chunk_{chunk_num:06d}.parquet"
     df.write_parquet(path)
@@ -93,7 +96,9 @@ def _load_chunk_ids(chunk_dir):
 
     story_ids = set()
     for f in chunk_files:
-        ids = pl.scan_parquet(f).select("rp_story_id").collect()["rp_story_id"].to_list()
+        ids = (
+            pl.scan_parquet(f).select("rp_story_id").collect()["rp_story_id"].to_list()
+        )
         story_ids.update(ids)
 
     print(f"Scanned {len(chunk_files)} chunks: {len(story_ids):,} story IDs")
@@ -101,11 +106,16 @@ def _load_chunk_ids(chunk_dir):
 
 
 def embed_headlines_bert(
-    headlines, story_ids, batch_size=BATCH_SIZE, max_length=MAX_LENGTH,
-    model_name=BERT_MODEL_NAME, device=None, checkpoint_every=500, chunk_dir=None,
+    headlines,
+    story_ids,
+    batch_size=BATCH_SIZE,
+    max_length=MAX_LENGTH,
+    model_name=BERT_MODEL_NAME,
+    device=None,
+    checkpoint_every=500,
+    chunk_dir=None,
 ):
     """Embed a list of headlines using BERT mean pooling."""
-    import sys
     import torch
     from tqdm import tqdm
 
@@ -119,19 +129,29 @@ def embed_headlines_bert(
     n = len(headlines)
     pending_embeddings = []
     pending_ids = []
-    chunk_num = len(list(chunk_dir.glob("chunk_*.parquet"))) if chunk_dir.exists() else 0
+    chunk_num = (
+        len(list(chunk_dir.glob("chunk_*.parquet"))) if chunk_dir.exists() else 0
+    )
     total_embedded = 0
 
     total_batches = (n + batch_size - 1) // batch_size
     print(f"Starting: {total_batches:,} batches, batch_size={batch_size}")
-    batch_iter = tqdm(range(0, n, batch_size), desc="BERT embedding", unit="batch", total=total_batches)
+    batch_iter = tqdm(
+        range(0, n, batch_size),
+        desc="BERT embedding",
+        unit="batch",
+        total=total_batches,
+    )
 
     try:
         for start in batch_iter:
-            batch_texts = headlines[start:start + batch_size]
+            batch_texts = headlines[start : start + batch_size]
             encoded = tokenizer(
-                batch_texts, padding=True, truncation=True,
-                max_length=max_length, return_tensors="pt",
+                batch_texts,
+                padding=True,
+                truncation=True,
+                max_length=max_length,
+                return_tensors="pt",
             )
             encoded = {k: v.to(device) for k, v in encoded.items()}
 
@@ -144,7 +164,7 @@ def embed_headlines_bert(
 
             batch_emb = mean_pool_embeddings(output, encoded["attention_mask"])
             pending_embeddings.append(batch_emb)
-            pending_ids.extend(story_ids[start:start + batch_size])
+            pending_ids.extend(story_ids[start : start + batch_size])
 
             batch_num_in_loop = start // batch_size
             if checkpoint_every and (batch_num_in_loop + 1) % checkpoint_every == 0:

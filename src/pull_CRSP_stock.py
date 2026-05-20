@@ -31,7 +31,7 @@ import wrds
 
 from settings import config
 
-DATA_DIR = Path(config("DATA_DIR"))
+DATA_DIR = config("DATA_DIR")
 WRDS_USERNAME = config("WRDS_USERNAME")
 START_DATE = config("START_DATE")
 END_DATE = config("END_DATE")
@@ -141,18 +141,20 @@ def pull_CRSP_monthly_file(
 
     # Rename columns for backward compatibility with downstream code
     # (calc_CRSP_indices.py, calc_SP500_index.py expect these names)
-    df = df.rename(columns={
-        'mthcaldt': 'date',
-        'mthret': 'ret',
-        'mthretx': 'retx',
-        'mthprc': 'prc',
-        'mthvol': 'vol',
-        'mthcumfacshr': 'cfacshr',
-        'mthcumfacpr': 'cfacpr',
-    })
+    df = df.rename(
+        columns={
+            "mthcaldt": "date",
+            "mthret": "ret",
+            "mthretx": "retx",
+            "mthprc": "prc",
+            "mthvol": "vol",
+            "mthcumfacshr": "cfacshr",
+            "mthcumfacpr": "cfacpr",
+        }
+    )
 
     # Create altprc for compatibility (absolute value of price)
-    df['altprc'] = df['prc'].abs()
+    df["altprc"] = df["prc"].abs()
 
     # Calculate adjusted shares and prices for market cap calculation
     # (same logic as the old SIZ format)
@@ -235,13 +237,13 @@ def _demo():
 
 
 if __name__ == "__main__":
-    df_msf = pull_CRSP_monthly_file(start_date=START_DATE, end_date=END_DATE)
-    path = Path(DATA_DIR) / "CRSP_MSF_INDEX_INPUTS.parquet"
-    df_msf.to_parquet(path)
+    # df_msf = pull_CRSP_monthly_file(start_date=START_DATE, end_date=END_DATE)
+    # path = Path(DATA_DIR) / "CRSP_MSF_INDEX_INPUTS.parquet"
+    # df_msf.to_parquet(path)
 
-    df_msix = pull_CRSP_index_files(start_date=START_DATE, end_date=END_DATE)
-    path = Path(DATA_DIR) / f"CRSP_MSIX.parquet"
-    df_msix.to_parquet(path)
+    # df_msix = pull_CRSP_index_files(start_date=START_DATE, end_date=END_DATE)
+    # path = Path(DATA_DIR) / f"CRSP_MSIX.parquet"
+    # df_msix.to_parquet(path)
 
     df_dsi = pull_CRSP_daily_index(start_date=START_DATE, end_date=END_DATE)
     path = Path(DATA_DIR) / "CRSP_DSI.parquet"

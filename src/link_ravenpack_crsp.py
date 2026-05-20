@@ -49,7 +49,11 @@ def build_raven_crsp_crosswalk(wrds_username=WRDS_USERNAME):
     return df
 
 
-def attach_permno_to_ravenpack(data_dir=DATA_DIR, wrds_username=WRDS_USERNAME, output_path=None):
+def attach_permno_to_ravenpack(
+    data_dir=DATA_DIR,
+    wrds_username=WRDS_USERNAME,
+    output_path=None,
+):
     """
     Left-join the RavenPack-CRSP crosswalk onto RavenPack headlines
     by rp_entity_id. Drops unmatched rows and reports match rate.
@@ -75,16 +79,17 @@ def attach_permno_to_ravenpack(data_dir=DATA_DIR, wrds_username=WRDS_USERNAME, o
     # Deduplicate crosswalk by rp_entity_id to prevent row explosion
     crosswalk_dedup = crosswalk.unique(subset=["rp_entity_id"], keep="first")
     # crosswalk_dedup = crosswalk.drop_duplicates(subset="rp_entity_id", keep="first")
-    print(f"Crosswalk after dedup: {len(crosswalk_dedup):,} unique rp_entity_ids "
-          f"(from {len(crosswalk):,} total pairs)")
+    print(
+        f"Crosswalk after dedup: {len(crosswalk_dedup):,} unique rp_entity_ids "
+        f"(from {len(crosswalk):,} total pairs)"
+    )
 
     # Stream join + filter directly to disk — never materializes full dataset in RAM
     # df = rp.merge(crosswalk_dedup, on="rp_entity_id", how="left")
     # df = df.dropna(subset=["permno"])
     # df["permno"] = df["permno"].astype(int)
     (
-        rp_lazy
-        .join(crosswalk_dedup.lazy(), on="rp_entity_id", how="left")
+        rp_lazy.join(crosswalk_dedup.lazy(), on="rp_entity_id", how="left")
         .filter(pl.col("permno").is_not_null())
         .with_columns(pl.col("permno").cast(pl.Int64))
         .sink_parquet(output_path)

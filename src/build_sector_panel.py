@@ -24,9 +24,17 @@ DATA_DIR = Path(config("DATA_DIR"))
 
 # 2-digit GICS sector code -> SPDR Select Sector ETF ticker
 SECTOR_ETF_MAP = {
-    "10": "XLE", "15": "XLB", "20": "XLI", "25": "XLY",
-    "30": "XLP", "35": "XLV", "40": "XLF", "45": "XLK",
-    "50": "XLC", "55": "XLU", "60": "XLRE",
+    "10": "XLE",
+    "15": "XLB",
+    "20": "XLI",
+    "25": "XLY",
+    "30": "XLP",
+    "35": "XLV",
+    "40": "XLF",
+    "45": "XLK",
+    "50": "XLC",
+    "55": "XLU",
+    "60": "XLRE",
 }
 
 
@@ -39,12 +47,17 @@ def join_predictions_to_headlines(
     Headlines without a prediction are dropped.
     """
     return (
-        df_headlines
-        .join(df_preds.select("rp_story_id", "p_up"), on="rp_story_id", how="inner")
+        df_headlines.join(
+            df_preds.select("rp_story_id", "p_up"), on="rp_story_id", how="inner"
+        )
         .with_columns((pl.col("p_up") - 0.5).alias("sentiment_score"))
         .select(
-            "rp_story_id", "permno", "article_date", "market_cap",
-            "gsector", "sentiment_score",
+            "rp_story_id",
+            "permno",
+            "article_date",
+            "market_cap",
+            "gsector",
+            "sentiment_score",
         )
     )
 
@@ -77,8 +90,7 @@ def compute_synthetic_sector_returns(
     on (permno, CRSP date) instead of (permno, article_date).
     """
     df_sectors = (
-        df_sp500
-        .select(
+        df_sp500.select(
             pl.col("permno").cast(pl.Float64),
             pl.col("gsector").cast(pl.Utf8),
             pl.col("effstartdt").cast(pl.Date),
@@ -118,10 +130,12 @@ def compute_synthetic_sector_returns(
 
 def attach_etf_returns(df_panel: pl.DataFrame, df_etf: pl.DataFrame) -> pl.DataFrame:
     """Join the SPDR ETF return for each (gsector, date) row in df_panel."""
-    sector_to_ticker = pl.DataFrame({
-        "gsector": list(SECTOR_ETF_MAP.keys()),
-        "ticker": list(SECTOR_ETF_MAP.values()),
-    })
+    sector_to_ticker = pl.DataFrame(
+        {
+            "gsector": list(SECTOR_ETF_MAP.keys()),
+            "ticker": list(SECTOR_ETF_MAP.values()),
+        }
+    )
     df = df_panel.join(sector_to_ticker, on="gsector", how="left")
     df = df.join(
         df_etf.select(pl.col("ticker"), pl.col("date").cast(pl.Date), "ret"),
@@ -152,14 +166,23 @@ def build_panel(model_name: str, data_dir: Path = None) -> Path:
     df_panel = df_sentiment.join(df_synth, on=["gsector", "date"], how="inner")
     df_panel = attach_etf_returns(df_panel, df_etf)
 
-    df_panel = df_panel.with_columns(
-        pl.col("gsector").replace_strict(
-            GICS_SECTOR_NAMES, default=None, return_dtype=pl.Utf8
-        ).alias("sector_name")
-    ).select(
-        "gsector", "sector_name", "date", "n_headlines",
-        "sentiment", "synthetic_ret", "etf_ret",
-    ).sort(["gsector", "date"])
+    df_panel = (
+        df_panel.with_columns(
+            pl.col("gsector")
+            .replace_strict(GICS_SECTOR_NAMES, default=None, return_dtype=pl.Utf8)
+            .alias("sector_name")
+        )
+        .select(
+            "gsector",
+            "sector_name",
+            "date",
+            "n_headlines",
+            "sentiment",
+            "synthetic_ret",
+            "etf_ret",
+        )
+        .sort(["gsector", "date"])
+    )
 
     out_path = data_dir / f"sector_sentiment_panel_{model_name}.parquet"
     df_panel.write_parquet(out_path)
@@ -172,9 +195,7 @@ def build_panel(model_name: str, data_dir: Path = None) -> Path:
 
 def _parse_args():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument(
-        "--model", required=True, choices=["bert", "gemma", "tfidf", "openai_small"]
-    )
+    p.add_argument("--model", required=True, choices=["bert", "gemma"])
     return p.parse_args()
 
 

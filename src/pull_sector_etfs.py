@@ -23,7 +23,17 @@ START_DATE = "2000-01-01"
 END_DATE = "2019-06-30"
 
 SECTOR_ETF_TICKERS = [
-    "XLE", "XLB", "XLI", "XLY", "XLP", "XLV", "XLF", "XLK", "XLC", "XLU", "XLRE",
+    "XLE",
+    "XLB",
+    "XLI",
+    "XLY",
+    "XLP",
+    "XLV",
+    "XLF",
+    "XLK",
+    "XLC",
+    "XLU",
+    "XLRE",
 ]
 
 
@@ -35,7 +45,12 @@ def download_sector_etfs(
     import yfinance as yf
 
     raw = yf.download(
-        tickers, start=start, end=end, auto_adjust=True, progress=False, group_by="ticker"
+        tickers,
+        start=start,
+        end=end,
+        auto_adjust=True,
+        progress=False,
+        group_by="ticker",
     )
     rows = []
     for t in tickers:
@@ -58,8 +73,9 @@ def compute_etf_returns(df: pl.DataFrame) -> pl.DataFrame:
     return (
         df.sort(["ticker", "date"])
         .with_columns(
-            (pl.col("adj_close") / pl.col("adj_close").shift(1).over("ticker") - 1.0)
-            .alias("ret")
+            (
+                pl.col("adj_close") / pl.col("adj_close").shift(1).over("ticker") - 1.0
+            ).alias("ret")
         )
         .select("ticker", "date", "adj_close", "ret")
     )

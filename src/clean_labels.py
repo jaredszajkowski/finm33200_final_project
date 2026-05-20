@@ -39,15 +39,11 @@ def compute_return_window(df_crsp_daily: pl.DataFrame, window=(-1, 1)) -> pl.Dat
     """
     lo, hi = window
 
-    df = (
-        df_crsp_daily
-        .select("permno", "date", "ret")
-        .sort(["permno", "date"])
-    )
+    df = df_crsp_daily.select("permno", "date", "ret").sort(["permno", "date"])
 
     # === HW STEP 1 START ===
     # raise NotImplementedError("TODO: implement compute_return_window")
-    
+
     # src/clean_labels.py, lines 48-67
     # For each offset k in [lo, hi], shift ret by -k within each permno
     shift_exprs = []
@@ -55,9 +51,7 @@ def compute_return_window(df_crsp_daily: pl.DataFrame, window=(-1, 1)) -> pl.Dat
     for k in range(lo, hi + 1):
         col_name = f"_ret_k{k}"
         shift_names.append(col_name)
-        shift_exprs.append(
-            pl.col("ret").shift(-k).over("permno").alias(col_name)
-        )
+        shift_exprs.append(pl.col("ret").shift(-k).over("permno").alias(col_name))
 
     df = df.with_columns(shift_exprs)
     df = df.drop_nulls(subset=shift_names)
@@ -77,11 +71,9 @@ def assign_binary_label(df: pl.DataFrame) -> pl.DataFrame:
     """Add a binary 'label' column: 1 if ret_window > 0, else 0."""
     # === HW STEP 2 START ===
     # raise NotImplementedError("TODO: implement assign_binary_label")
-    
-    return df.with_columns(
-        (pl.col("ret_window") > 0).cast(pl.Int8).alias("label")
-    )
-    
+
+    return df.with_columns((pl.col("ret_window") > 0).cast(pl.Int8).alias("label"))
+
     # === HW STEP 2 END ===
 
 
@@ -98,19 +90,18 @@ def build_labeled_dataset(
     df_crsp_news = df_crsp_daily.join(permnos_in_news, on="permno", how="semi")
 
     n_days = window[1] - window[0] + 1
-    print(f"Computing {n_days}-day return windows for {len(permnos_in_news):,} permnos...")
+    print(
+        f"Computing {n_days}-day return windows for {len(permnos_in_news):,} permnos..."
+    )
     df_windows = compute_return_window(df_crsp_news, window=window)
     df_windows = df_windows.rename({"date": "article_date"})
     df_windows = df_windows.with_columns(pl.col("permno").cast(pl.Float64))
 
     # Market cap on article date
-    df_mc = (
-        df_crsp_daily
-        .select(
-            pl.col("permno").cast(pl.Float64),
-            pl.col("date").cast(pl.Date).alias("article_date"),
-            "market_cap",
-        )
+    df_mc = df_crsp_daily.select(
+        pl.col("permno").cast(pl.Float64),
+        pl.col("date").cast(pl.Date).alias("article_date"),
+        "market_cap",
     )
 
     # Prepare clean data
