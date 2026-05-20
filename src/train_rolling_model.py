@@ -37,7 +37,7 @@ from sklearn.preprocessing import StandardScaler
 
 from settings import config
 
-DATA_DIR = Path(config("DATA_DIR"))
+DATA_DIR = config("DATA_DIR")
 
 # Registry of embedding models: name -> chunk directory
 EMBEDDING_REGISTRY = {
@@ -48,13 +48,13 @@ EMBEDDING_REGISTRY = {
 # L2 penalty grid (C = inverse regularization strength)
 C_GRID = [1e-4, 1e-3, 1e-2, 1e-1, 1.0]
 
-TRAIN_YEARS = 6
-VAL_YEARS = 2
+TRAIN_YEARS = 3
+VAL_YEARS = 1
 
 # Cap rows per split to fit in RAM
-MAX_TRAIN_SAMPLES = 300_000
-MAX_VAL_SAMPLES = 100_000
-MAX_TEST_SAMPLES = 100_000
+MAX_TRAIN_SAMPLES = None
+MAX_VAL_SAMPLES = None
+MAX_TEST_SAMPLES = None
 
 
 def get_rolling_windows(df_labeled: pl.DataFrame):
@@ -74,12 +74,17 @@ def get_rolling_windows(df_labeled: pl.DataFrame):
 
     windows = []
     for oos_year in range(oos_start, oos_end + 1):
-        windows.append({
-            "oos_year": oos_year,
-            "train": (f"{oos_year - VAL_YEARS - TRAIN_YEARS}-01-01", f"{oos_year - VAL_YEARS - 1}-12-31"),
-            "val": (f"{oos_year - VAL_YEARS}-01-01", f"{oos_year - 1}-12-31"),
-            "test": (f"{oos_year}-01-01", f"{oos_year}-12-31"),
-        })
+        windows.append(
+            {
+                "oos_year": oos_year,
+                "train": (
+                    f"{oos_year - VAL_YEARS - TRAIN_YEARS}-01-01",
+                    f"{oos_year - VAL_YEARS - 1}-12-31",
+                ),
+                "val": (f"{oos_year - VAL_YEARS}-01-01", f"{oos_year - 1}-12-31"),
+                "test": (f"{oos_year}-01-01", f"{oos_year}-12-31"),
+            }
+        )
     return windows
 
 
@@ -154,7 +159,11 @@ def train_logistic_sentiment(X_train, y_train, X_val, y_val, c_grid=C_GRID):
 
     for C in c_grid:
         model = LogisticRegression(
-            C=C, penalty="l2", solver="lbfgs", max_iter=1000, random_state=42,
+            C=C,
+            l1_ratio=0,
+            solver="lbfgs",
+            max_iter=1000,
+            random_state=42,
         )
         model.fit(X_train_sc, y_train)
         val_acc = accuracy_score(y_val, model.predict(X_val_sc))
@@ -176,8 +185,13 @@ def predict_sentiment_proba(model, X):
 
 
 def run_rolling_sentiment_analysis(
-    chunk_dir, df_labeled, windows, model_name="model", checkpoint_path=None,
-    max_train_samples=MAX_TRAIN_SAMPLES, max_val_samples=MAX_VAL_SAMPLES,
+    chunk_dir,
+    df_labeled,
+    windows,
+    model_name="model",
+    checkpoint_path=None,
+    max_train_samples=MAX_TRAIN_SAMPLES,
+    max_val_samples=MAX_VAL_SAMPLES,
     max_test_samples=MAX_TEST_SAMPLES,
 ):
     """Run rolling sentiment analysis for all OOS years."""
@@ -205,6 +219,12 @@ def run_rolling_sentiment_analysis(
         df_val_labels = _get_split(df_labeled, *w["val"])
         df_test_labels = _get_split(df_labeled, *w["test"])
 
+        df_n_pre_train, df_n_pre_val, df_n_pre_test = (
+            len(df_train_labels),
+            len(df_val_labels),
+            len(df_test_labels),
+        )
+
         # Subsample if too large
         if max_train_samples and len(df_train_labels) > max_train_samples:
             df_train_labels = df_train_labels.sample(n=max_train_samples, seed=42)
@@ -213,14 +233,19 @@ def run_rolling_sentiment_analysis(
         if max_test_samples and len(df_test_labels) > max_test_samples:
             df_test_labels = df_test_labels.sample(n=max_test_samples, seed=42)
 
-        n_train, n_val, n_test = len(df_train_labels), len(df_val_labels), len(df_test_labels)
+        n_train, n_val, n_test = (
+            len(df_train_labels),
+            len(df_val_labels),
+            len(df_test_labels),
+        )
 
         print(
             f"OOS {oos_year}: "
-            f"train {w['train'][0][:4]}-{w['train'][1][:4]} (n={n_train:,}), "
-            f"val {w['val'][0][:4]}-{w['val'][1][:4]} (n={n_val:,}), "
-            f"test {oos_year} (n={n_test:,})",
-            end=" ... ", flush=True,
+            f"train {w['train'][0][:4]}-{w['train'][1][:4]} (n={n_train:,}, df={df_n_pre_train:,}), "
+            f"val {w['val'][0][:4]}-{w['val'][1][:4]} (n={n_val:,}, df={df_n_pre_val:,}), "
+            f"test {oos_year} (n={n_test:,}, df={df_n_pre_test:,})",
+            end=" ... ",
+            flush=True,
         )
 
         if n_train < 100 or n_val < 10 or n_test < 10:
@@ -250,7 +275,9 @@ def run_rolling_sentiment_analysis(
         X_val, y_val, _ = _build_Xy(df_val_labels)
         X_test, y_test, test_ids = _build_Xy(df_test_labels)
 
-        model, best_C, val_acc = train_logistic_sentiment(X_train, y_train, X_val, y_val)
+        model, best_C, val_acc = train_logistic_sentiment(
+            X_train, y_train, X_val, y_val
+        )
 
         y_proba = predict_sentiment_proba(model, X_test)
         y_pred = (y_proba >= 0.5).astype(int)
@@ -343,8 +370,11 @@ if __name__ == "__main__":
 
         checkpoint = DATA_DIR / f"rolling_results_{model_name}_checkpoint.json"
         results, predictions = run_rolling_sentiment_analysis(
-            chunk_dir, df_labeled, windows,
-            model_name=model_name, checkpoint_path=checkpoint,
+            chunk_dir,
+            df_labeled,
+            windows,
+            model_name=model_name,
+            checkpoint_path=checkpoint,
         )
         save_results(results, model_name)
 
