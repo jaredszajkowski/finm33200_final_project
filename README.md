@@ -77,7 +77,6 @@ Where:
 
 * $\mathrm{score_{s, t}}$ is the sector-level return score for sector $s$ on day $t$
 * $P_{i, t}$ is the predicted probability of a positive return for stock $i$ on day $t$
-* $r_{i,t}$ is the actual return for stock $i$ on day $t$
 * $w_{i,t-1}$ is the weight for stock $i$ on day $t-1$
 * $m_{i, t-1}$ is the market capitalization for stock $i$ on day $t-1$
 
@@ -146,7 +145,7 @@ doit
 
 ## Runtime Constraints
 
-Both `embed_bert.py` and `embed_gemma.py` run on CPU by default and can take several days (75 - 100 hours) to complete the embedding of the full dataset. If you have access to a GPU, you can modify the scripts to run on GPU, which will likely significantly reduce runtime.
+Both `embed_bert.py` and `embed_gemma.py` run on CPU by default and can take 75 - 100 hours to complete the embedding of the full dataset. If you have access to a GPU, you can modify the scripts to run on GPU, which will likely significantly reduce runtime.
 
 ## Directory Structure
 
